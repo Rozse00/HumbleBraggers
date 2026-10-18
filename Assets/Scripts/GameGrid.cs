@@ -5,31 +5,80 @@ using System.Collections.Generic;
 public class GameGrid : MonoBehaviour
 {
     public GameObject sphere;
-    [HideInInspector] public List<Vector3> spots;
+    [HideInInspector] public List<List<GameObject>> spheres;
 
     float left, right, bottom, top;
 
-    void Start()
+    float offset = .6667f;
+
+    void Awake()
     {
         left = bottom = -10f;
         right = top = 10f;
 
-        for(float i = left; i<=right; i+=.5f)
+        spheres = new List<List<GameObject>>();
+
+        for (float i = left; i<=right; i+=offset)
         {
-            for (float j = bottom; j <= top; j+= .5f)
+            List<GameObject> line = new List<GameObject>();
+
+            for (float j = bottom; j <= top; j+= offset)
             {
-                Vector3 vec = new Vector3(i, .5f, j);
-                spots.Add(vec);
+                Vector3 vec = new Vector3(i, 1f, j);
+                GameObject obj = Instantiate(sphere);
+                obj.transform.position = vec;
+                line.Add(obj);
+            }
+
+            spheres.Add(line);
+        }
+
+        for (int i = 0; i < spheres.Count; i++)
+        {
+            for (int j = 0; j < spheres[i].Count; j++)
+            {
+                GridSphere gs = spheres[i][j].GetComponent<GridSphere>();
+                gs.SetPoint(i, j);
+            }
+        }
+
+        Debug.Log($"{spheres.Count} * {spheres[0].Count} = {spheres.Count * spheres[0].Count}");
+
+        ResetColors();
+    }
+
+    public GameObject Get(Point p)
+    {
+        return spheres[p.x][p.z];
+    }
+
+    public void ResetColors()
+    {
+        Debug.Log("Reset Colors.");
+        foreach(List<GameObject> line in spheres)
+        {
+            for (int i = 0; i < line.Count; i++)
+            {
+                line[i].GetComponent<GridSphere>().gizColor = Color.gray;
             }
         }
     }
 
-    void OnDrawGizmos()
+    public void OnDrawGizmos()
     {
-        Gizmos.color = Color.cyan;
-        foreach(Vector3 spot in spots)
+        if(spheres == null || spheres.Count == 0)
+        {            
+            return;
+        }
+
+        for (int i = 0; i < spheres.Count; i++)
         {
-            Gizmos.DrawSphere(spot, .24f);
+            for (int j = 0; j < spheres[0].Count; j++)
+            {
+                GameObject sp = spheres[i][j];
+                Gizmos.color = sp.GetComponent<GridSphere>().gizColor;
+                Gizmos.DrawSphere(sp.transform.position, offset / 2);
+            }
         }
     }
 }

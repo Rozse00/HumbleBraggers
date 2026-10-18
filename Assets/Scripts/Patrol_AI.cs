@@ -4,17 +4,21 @@ using System.Collections.Generic;
 
 public class Patrol_AI : MonoBehaviour
 {
+    //radius of detection Sphere
     public float sphereRad;
     Color col;
 
     int trig = 0;
-
+    
+    //might store positions of objects to avoid, i.e. a wall to move away from when moving around;
     List<Vector3> positions;
-
+    
+    //will store waypoint lists for patrolling
     public Transform[] path1;
     public Transform[] path2;
 
-    private GameGrid gameGrid;
+    GridSearch gs; 
+    public GameObject lookForThis;
 
     void Start()
     {
@@ -24,8 +28,20 @@ public class Patrol_AI : MonoBehaviour
         float val = sphereRad / scl;
         GetComponent<SphereCollider>().radius = val;
 
-        col = Color.white;
+        gs = GetComponent<GridSearch>();
 
+        col = Color.white;
+    }
+
+    //List<Transform>
+    public void GetPath()
+    {
+        List<Transform> result = gs.Search(gameObject.transform.position, lookForThis);
+
+        if (result == null || result.Count == 0)
+            Debug.LogWarning($"Search issue | {gameObject.name} looking for {lookForThis.name} ");
+        else
+            Debug.Log($"Found {lookForThis.name}! ");
 
     }
 
@@ -37,8 +53,6 @@ public class Patrol_AI : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(trig);
-
         if (trig>0) 
             col = new Color(.7f, .4f, .1f, .25f);
         else 
@@ -48,11 +62,6 @@ public class Patrol_AI : MonoBehaviour
     void OnTriggerEnter(Collider col)
     {
         trig++;
-    }
-
-    void OnTriggerStay(Collider col)
-    {
-        
     }
 
     void OnTriggerExit(Collider col)
