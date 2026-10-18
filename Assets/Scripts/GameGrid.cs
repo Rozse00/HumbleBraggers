@@ -9,7 +9,7 @@ public class GameGrid : MonoBehaviour
 
     float left, right, bottom, top;
 
-    float offset = .6667f;
+    float offset = .5f;
 
     void Awake()
     {
@@ -24,7 +24,7 @@ public class GameGrid : MonoBehaviour
 
             for (float j = bottom; j <= top; j+= offset)
             {
-                Vector3 vec = new Vector3(i, 1f, j);
+                Vector3 vec = new Vector3(i, .75f, j);
                 GameObject obj = Instantiate(sphere);
                 obj.transform.position = vec;
                 line.Add(obj);
@@ -51,6 +51,7 @@ public class GameGrid : MonoBehaviour
     {
         return spheres[p.x][p.z];
     }
+    public float GetOffset() {  return offset; }
 
     public void ResetColors()
     {
@@ -66,8 +67,8 @@ public class GameGrid : MonoBehaviour
 
     public void OnDrawGizmos()
     {
-        if(spheres == null || spheres.Count == 0)
-        {            
+        if (spheres == null || spheres.Count == 0)
+        {
             return;
         }
 
