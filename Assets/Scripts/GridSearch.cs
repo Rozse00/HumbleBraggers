@@ -4,11 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+//This searches through the grid for any other object on the
+//grid; Attach this to any gameObject that will need pathing
 public class GridSearch : MonoBehaviour
 {
     GameGrid gameGrid;
     List<List<GameObject>> spheresRef;
 
+    //Put the layers for any obstacles/walls here
     public LayerMask mask;
 
     public void Start()
@@ -16,11 +19,6 @@ public class GridSearch : MonoBehaviour
         gameGrid = GameObject.Find("GameGridObj").GetComponent<GameGrid>();
         spheresRef = gameGrid.spheres;
     }
-
-    //public List<Transform> Search(Transform tf, GameObject obj)
-    //{
-    //    return Search(tf, obj);
-    //}
 
     public List<Transform> Search(Vector3 orig, GameObject searchObj)
     {
@@ -42,8 +40,6 @@ public class GridSearch : MonoBehaviour
 
         while (q.Count > 0)
         {
-            //StartCoroutine(Delay(q));
-
             SpreadOut(q, set, prev);
 
             StringBuilder s = new StringBuilder();
@@ -69,10 +65,13 @@ public class GridSearch : MonoBehaviour
                 {
                     Debug.Log("FOUND IT");
                     end = next;
+                    q.Clear();
+                    break;
                 }
 
                 q.Enqueue(next);
             }
+            //shows the objects hit in the last search
             Debug.Log(s.ToString());
         }
 
@@ -80,7 +79,8 @@ public class GridSearch : MonoBehaviour
         Point at = end;
 
         StringBuilder sb = new StringBuilder();
-
+        
+        //goes backward through prev to get critical path
         while (prev.ContainsKey(at) && prev[at] != null)
         {
             if (sb.Length == 0)
@@ -102,20 +102,7 @@ public class GridSearch : MonoBehaviour
         return path;
     }
 
-    //IEnumerator Delay(Queue<Point> q)
-    //{
-    //    yield return new WaitForSeconds(0.5f);
-    //    int size = q.Count;
-
-    //    for (int i = 0; i < size; i++)
-    //    {
-    //        Point next = q.Dequeue();
-    //        GridSphere gSphere = gameGrid.Get(next).GetComponent<GridSphere>();
-    //        gSphere.gizColor = Color.darkBlue;
-    //        q.Enqueue(next);
-    //    }
-    //}
-
+    //Spreads the search out one layer
     void SpreadOut(Queue<Point> q, HashSet<Point> set, Dictionary<Point, Point> prev)
     {
         int size = q.Count;
@@ -126,6 +113,7 @@ public class GridSearch : MonoBehaviour
 
             int X = current.x, Z = current.z;
 
+            //checks up-down-left-right for available spots
             if (X > 0)
             {
                 Point next = new Point(X - 1, Z);
@@ -173,6 +161,7 @@ public class GridSearch : MonoBehaviour
         }
     }
 
+    //Checks if point b can be traveled into from point a
     bool CanMove(Point a, Point b)
     {
         Transform A = gameGrid.Get(a).transform;
@@ -184,11 +173,10 @@ public class GridSearch : MonoBehaviour
 
         bool sphereHit = Physics.SphereCast(A.position, .2f, dir, out hit, gameGrid.GetOffset(), mask);
 
-        //if (sphereHit) Debug.Log($"{a} -> {b} hit");
-
         return !sphereHit;
     }
 
+    //Get nearest grid unit
     Collider GetClosestSphere(Vector3 orig)
     {
         Collider[] hitColliders = Physics.OverlapSphere(orig, .5f);

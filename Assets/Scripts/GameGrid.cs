@@ -5,11 +5,11 @@ using System.Collections.Generic;
 public class GameGrid : MonoBehaviour
 {
     public GameObject sphere;
-    [HideInInspector] public List<List<GameObject>> spheres;
+    [HideInInspector] public List<List<GameObject>> spheres; //stores all the spheres used in the grid
 
     float left, right, bottom, top;
 
-    float offset = .5f;
+    float offset = .5f; //dist between grid points
 
     void Awake()
     {

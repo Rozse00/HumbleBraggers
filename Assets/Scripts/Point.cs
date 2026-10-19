@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 
+//used in grid functionality
 public class Point
 {
     public int x, z;
