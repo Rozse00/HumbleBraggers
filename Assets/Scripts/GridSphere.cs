@@ -7,7 +7,7 @@ public class GridSphere : MonoBehaviour
 {
     public Point point;
 
-    HashSet<GameObject> objects;
+    HashSet<GameObject> objects; //objects currently at point
 
     [HideInInspector] public Color gizColor { get; set; }
 

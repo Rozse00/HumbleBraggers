@@ -2,17 +2,17 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-//turns on an text-image pair, used as an alert; currently only used in the rebinding process
+//turns on an text-image pair; use for on-screen alerts
 public class MessageFlash : MonoBehaviour
 {
-    //references to the text and accomponying image
+    //references to the text and image
     public TMP_Text dupeText;
     private Image dupeImage;
     private Color imgColor;
 
     public float holdTime; //time to stay at 100% opacity
     public float fadeTime; //time from 100% to 0% opacity
-    private float timeLeft; //current t
+    private float timeLeft; //current time left
 
     void Start()
     {

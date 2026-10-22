@@ -10,15 +10,16 @@ public class Patrol_AI : MonoBehaviour
 
     int trig = 0;
     
-    //might store positions of objects to avoid, i.e. a wall to move away from when moving around;
+    //might store positions of objects in environment to avoid, i.e. a wall to
+    //move away from when moving around; currently unused
     List<Vector3> positions;
     
     //will store waypoint lists for patrolling
     public Transform[] path1;
     public Transform[] path2;
 
-    GridSearch gs; 
-    public GameObject lookForThis;
+    GridSearch gs; //GridSearch ref
+    public GameObject lookForThis; //gameObject to look for
 
     void Start()
     {
@@ -33,7 +34,6 @@ public class Patrol_AI : MonoBehaviour
         col = Color.white;
     }
 
-    //List<Transform>
     public void GetPath()
     {
         List<Transform> result = gs.Search(gameObject.transform.position, lookForThis);
