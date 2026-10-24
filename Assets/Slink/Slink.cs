@@ -7,21 +7,21 @@ using UnityEngine;
  The slink follows the player's camera
 
 To do before finished:
- ~Add snake animations for following, hiding and attacking
  ~In main scene attach player transform in inspector
- ~In main scene attach agent transform in inspector
+ ~In main scene attack enemies animator component
  ~In main scene make waypoints in doorways and tag them "Door"
- ~Check if reference in the attack case to the method that applies damage to the player is accurate to the player script
+ ~Check if reference in the attack case to the method that applies damage to the player is accurate to the player script (line 142)
  */
 public class Slink : MonoBehaviour
 {
     public Transform playerCamera;//Attach players camera transform
-    public Transform enemyTransform;//Attach agents transform
     bool inLineOfSight = false;
     public float fieldOfView = 30f;
 
     static string[] enemyState = { "Hide", "Attack", "Following" };
     string currentState = enemyState[2];
+    string previousState = "";
+
     public Animator animator;//Attach enemy's animator component
     public float followSpeed = 4f;
     public float hideSpeed = 7f;//Faster speed when hiding
@@ -31,6 +31,7 @@ public class Slink : MonoBehaviour
     float distanceToPlayer;
     float attackRange = 5f;
     int health = 20;
+    int attackDamage = 5;
 
     // Update is called once per frame
     void Update()
@@ -40,7 +41,7 @@ public class Slink : MonoBehaviour
             //Calculate distance from slink to player each frame
             if (playerCamera != null)
             {
-                distanceToPlayer = Vector3.Distance(enemyTransform.position, playerCamera.position);
+                distanceToPlayer = Vector3.Distance(transform.position, playerCamera.position);
             }
 
             checkGaze();//Checks if the enemy is spotted
@@ -63,7 +64,7 @@ public class Slink : MonoBehaviour
                         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 10f);
                     }
 
-                    animator.SetTrigger("TriggerHide");
+                    SetAnimatorState("Hide");
                     return;//Skip state evaluation until arrival
                 }
                 else
@@ -122,8 +123,8 @@ public class Slink : MonoBehaviour
                             }
                         }
 
-                        animator.SetTrigger("TriggerHide");
-                        break;
+                    SetAnimatorState("Hide");
+                    break;
                 case "Attack":
                     Debug.Log("Slink is attacking");
                     //Snake roatates towards player and attacks
@@ -137,8 +138,8 @@ public class Slink : MonoBehaviour
                         }
                     }
 
-                    animator.SetTrigger("TriggerAttack");//play attack animation
-                    //playerHealth.TakeDamage(5);//apply damage to player
+                    SetAnimatorState("Attack"); //play attack animation
+                    //playerHealth.TakeDamage(attackDamage);//apply damage to player
                     break;
                 case "Following":
                     Debug.Log("Slink is following");
@@ -155,24 +156,40 @@ public class Slink : MonoBehaviour
                                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 10f);
                             }
                         }
-                    animator.SetTrigger("TriggerFollow");//play enemy slow slithering animation
+                    SetAnimatorState("Following"); //play enemy slow slithering animation
                     break;
             }
         }
     }
 
+    //Generates a ray starting at the player and checks if it contacts the slink
     private void checkGaze() 
     {
-        //Cast ray
-        Ray ray = new Ray(transform.position, transform.forward);
+        if (playerCamera == null) return;
+
+        //Calculate the direction from the player camera to the Slink
+        Vector3 directionToSlink = (transform.position - playerCamera.position).normalized;
+        //Cast ray starting at player
+        Ray ray = new Ray(playerCamera.position, directionToSlink);
         RaycastHit hit;
 
-        //If the ray hits a slink, change enemhySpotted to true
-        if (Physics.Raycast(ray, out hit)) 
+        //Calculate exact distance to avoid raycast missing due to range
+        float currentDistance = Vector3.Distance(playerCamera.position, transform.position);
+
+        //Cast a ray from the player's camera toward the Slink
+        if (Physics.Raycast(ray, out hit, currentDistance + 1f))
         {
-        Debug.Log("Player spots the Slink");
-            inLineOfSight = true;
+            //Check if the ray hit the Slink before hitting a wall
+            if (hit.transform == transform)
+            {
+                Debug.Log("Player spots the Slink - running to hide!");
+                inLineOfSight = true;
+                return;
+            }
         }
+
+        //If the ray hit a wall/obstacle instead of the Slink, or is out of sight, it's not in line of sight
+        inLineOfSight = false;
     }
 
     public void TakeDamage(int damageAmount) 
@@ -185,4 +202,22 @@ public class Slink : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    //Only trigger the animation parameter when changing states to avoid spamming/freezing triggers
+    private void SetAnimatorState(string newState)
+    {
+        if (newState != previousState && animator != null)
+        {
+            animator.ResetTrigger("TriggerHide");
+            animator.ResetTrigger("TriggerAttack");
+            animator.ResetTrigger("TriggerFollow");
+
+            if (newState == "Hide") animator.SetTrigger("TriggerHide");
+            else if (newState == "Attack") animator.SetTrigger("TriggerAttack");
+            else if (newState == "Following") animator.SetTrigger("TriggerFollow");
+
+            previousState = newState;
+        }
+    }
+
 }//Class end
