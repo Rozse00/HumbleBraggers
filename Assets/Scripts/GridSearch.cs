@@ -14,9 +14,10 @@ public class GridSearch : MonoBehaviour
     //Put the layers for any obstacles/walls here
     public LayerMask mask;
 
-    public void Start()
+    public void Awake()
     {
         gameGrid = GameObject.Find("GameGridObj").GetComponent<GameGrid>();
+        Debug.LogWarning("has grid?: " + (gameGrid != null));
         spheresRef = gameGrid.spheres;
     }
 
@@ -179,17 +180,25 @@ public class GridSearch : MonoBehaviour
     //Get nearest grid unit
     Collider GetClosestSphere(Vector3 orig)
     {
-        Collider[] hitColliders = Physics.OverlapSphere(orig, .5f);
+        LayerMask gridMask = LayerMask.GetMask("Grid");
+
+        Collider[] hitColliders = Physics.OverlapSphere(orig, .5f, gridMask);
+        Debug.Log("COLLIDERS: " + hitColliders.Length);
 
         Collider startCol = null;
         float dist = 200f;
 
         foreach (Collider col in hitColliders)
         {
-            if (col.gameObject.GetComponent<GridSphere>() == null)
+            GameObject colOb = col.gameObject;
+            Debug.Log("GetClosestSphere(): " + colOb.name);
+
+            if (colOb.GetComponent<GridSphere>() == null)
                 continue;
 
             float d = Vector3.Distance(col.gameObject.transform.position, orig);
+
+            Debug.Log(col.gameObject.GetComponent<GridSphere>().point + " dist: " + d);
 
             if (d < dist)
             {

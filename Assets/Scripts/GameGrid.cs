@@ -9,23 +9,32 @@ public class GameGrid : MonoBehaviour
 
     public bool showGizmos;
 
-    //[Header("X-bounds")]
-    //public float left;
-    //public float right;
-    //[Header("Z-bounds")]
-    //public float bottom;
-    //public float top;
+    public enum Mode
+    {
+        Bounds, CornerPoints
+    }
+    public Mode mode;
 
+    [Header("X-bounds")]
+    public float left;
+    public float right;
+    [Header("Z-bounds")]
+    public float bottom;
+    public float top;
+
+    [Header("Corner Points")]
     public Transform bLeft;
     public Transform tRight;
-    float left, bottom, right, top;
 
     float offset = .5f; //dist between grid points
 
     void Awake()
     {
-        left = bLeft.position.x; bottom=bLeft.position.z;
-        right = tRight.position.x; top=tRight.position.z;
+        if(mode == Mode.CornerPoints)
+        {
+            left = bLeft.position.x; bottom = bLeft.position.z;
+            right = tRight.position.x; top = tRight.position.z;
+        }
 
         spheres = new List<List<GameObject>>();
 
