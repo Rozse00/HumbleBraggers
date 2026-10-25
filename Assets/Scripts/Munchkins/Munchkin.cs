@@ -186,6 +186,8 @@ public class Munchkin : MonoBehaviour
 
     private void SetState(State next)
     {
+        CurrentState = next; 
+
         switch (next)
         {
             case State.Cooldown:
@@ -279,7 +281,7 @@ public class Munchkin : MonoBehaviour
 
         timeInWindow = 0f;
         energySiphoned = 0f;
-        siphonTimer = 0f;
+        siphonTimer = siphonDelay;
         SetState(State.Active);
 
     }

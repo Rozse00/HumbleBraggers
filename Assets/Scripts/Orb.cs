@@ -11,7 +11,7 @@ public class Orb : MonoBehaviour
     [SerializeField] private float maxEnergy = 100f;
     [SerializeField] private float startEnergy = 100f;
 
-    public float MaxEnergy => MaxEnergy; 
+    public float MaxEnergy => maxEnergy; 
     public float Energy { get; private set; }
     public bool isFull => Energy >= maxEnergy;
     public bool isEmpty => Energy <= 0f;
