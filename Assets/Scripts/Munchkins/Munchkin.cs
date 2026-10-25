@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 
 
-public class Munchkin : MonoBehaviour
+public class Munchkin : MonoBehaviour, IAnomaly
 {
 
     public struct AppearanceStats
@@ -36,9 +36,13 @@ public class Munchkin : MonoBehaviour
     [SerializeField] private float siphonRatePerSecond = 2f;
     [SerializeField] private float appearDelay = 3f; // Time between choosing a window and the Munchkin appearing in it
 
-    [Header("Utility Weights")]
+    [Header("Persoanl Utility Weights")]
     [SerializeField] private float playerDistance = 1f; // The further from the player, the better
     [SerializeField] private float jitter = 2f; // Randomness 
+
+    [Header("IAnomaly Utility Weights")]
+    [SerializeField] private float valueSeconds = 10f;  // Used to calculate how much energy the orb would lose if the Munchkin were left alone for this amount of time 
+    [SerializeField] private float resolveProbability = 1f; // Chance the ally has to successfully clear the Munchkin, for now it will be always be set to 1 
 
     [Header("Runtime")]
     public State CurrentState { get; private set; }
@@ -83,6 +87,9 @@ public class Munchkin : MonoBehaviour
     private void OnDestroy()
     {
         IsSummoned -= HandleSummoned;
+
+        AnomalyEvents.RaiseResolved(this);
+
         if (windows == null) return;
         foreach (var window in windows)
         {
@@ -186,7 +193,7 @@ public class Munchkin : MonoBehaviour
 
     private void SetState(State next)
     {
-        CurrentState = next; 
+        CurrentState = next;
 
         switch (next)
         {
@@ -201,26 +208,28 @@ public class Munchkin : MonoBehaviour
                 break;
             case State.Caught:
                 EnterCaught();
-                break; 
+                break;
         }
     }
 
     private void EnterCaught()
     {
-        var record = new AppearanceStats { timeInWindow = timeInWindow, energySiphoned = energySiphoned};
+        var record = new AppearanceStats { timeInWindow = timeInWindow, energySiphoned = energySiphoned };
         History.Add(record);
-        AppearanceEnded?.Invoke(record); 
+        AppearanceEnded?.Invoke(record);
 
         if (currentWindow != null)
         {
             currentWindow.SetOccupied(false);
             currentWindow.StartCooldown(windowCooldownAfterUse);
             lastWindow = currentWindow;
-            currentWindow = null; 
+            currentWindow = null;
         }
 
         activityCooldown = ComputeCooldown();
-        SetState(State.Cooldown); 
+        SetState(State.Cooldown);
+        AnomalyEvents.RaiseResolved(this);
+
     }
     #endregion
 
@@ -283,6 +292,7 @@ public class Munchkin : MonoBehaviour
         energySiphoned = 0f;
         siphonTimer = siphonDelay;
         SetState(State.Active);
+        AnomalyEvents.RaiseActivated(this);
 
     }
 
@@ -291,10 +301,10 @@ public class Munchkin : MonoBehaviour
     private void HandleWindowClosed(Window window)
     {
 
-        bool inWindow = CurrentState == State.Active || CurrentState == State.Siphoning; 
+        bool inWindow = CurrentState == State.Active || CurrentState == State.Siphoning;
         if (inWindow && window == currentWindow)
         {
-            SetState(State.Caught); 
+            SetState(State.Caught);
         }
     }
 
@@ -303,6 +313,39 @@ public class Munchkin : MonoBehaviour
         // Placeholder method for Wallpaper Man implementation
     }
     #endregion
+
+    #region IAnomaly Methods
+    // Determine the activity of Munchkin if its Active or Siphoning
+    string name = "Munchkin"; 
+
+    public bool IsActive => CurrentState == State.Active || CurrentState == State.Siphoning;
+
+    public Transform InteractionPoint => currentWindow != null ? currentWindow.AppearPoint : null;
+
+    // Munchkin's implementation of GetUtility. 
+    public float GetUtility()
+    {
+        if (!IsActive)
+        {
+            return 0f;
+        }
+
+        float value = siphonRatePerSecond * valueSeconds;
+        return AnomalyUtilityCalculator.ExpectedUtility(value, resolveProbability);
+    }
+
+    public bool TryResolve(GameObject resolver)
+    {
+        if (!IsActive || currentWindow == null)
+        {
+            return false; 
+        }
+
+        currentWindow.Close();
+        return true; 
+    }
+    #endregion
+
 
     #region Helper Methods
     private void ShowSprite()
