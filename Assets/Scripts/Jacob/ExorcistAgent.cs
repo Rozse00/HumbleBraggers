@@ -6,21 +6,25 @@ public class ExorcistAgent : MonoBehaviour
 {
     // Frequency at which the Exorcist will recalculate the utility of certain events
     [SerializeField] private float evaluationInterval = 1f;
-    private float timer; 
+    private float timer;
+    
 
     public IAnomaly Target { get; private set;  }
+    private GridSearch gs;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        List<BasicAnomalyTest> anom = GetAnomalies();
-        string result = string.Join(", ", anom.Select(x => x.ToString()));
-        Debug.Log($"List contents: {result}\n");
-        BasicAnomalyTest target = ChooseTarget(anom);
-        Debug.Log(target.ToString());
+        gs = GetComponent<GridSearch>();
+        Target = ChooseTarget();
+        //List<IAnomaly> anom = GetAnomalies();
+        //string result = string.Join(", ", anom.Select(x => x.ToString()));
+        //Debug.Log($"List contents: {result}\n");
+        Reevaluate();
+        //Debug.Log(target.ToString());
     }
 
-    // Subscribe to the anomaly events upon creation and unsubscribe upon defeat/disbale
+    // Subscribe to the anomaly events upon creation and unsubscribe upon defeat/disable
     void OnEnable()
     {
         AnomalyEvents.Activated += HandleAnomalyChanged;
@@ -47,26 +51,27 @@ public class ExorcistAgent : MonoBehaviour
         // The ExorcistAgent is moving towards the anaomaly's InteractionPoint (a transform component) 
     }
 
-    public List<BasicAnomalyTest> GetAnomalies()
-    {
-        BasicAnomalyTest[] foundAnomalies = FindObjectsByType<BasicAnomalyTest>(FindObjectsSortMode.None);
-        return new List<BasicAnomalyTest>(foundAnomalies);
-    }
-    public BasicAnomalyTest ChooseTarget(List<BasicAnomalyTest> anomalies)
-    {
-        float bestExpectedUtility = -999f;
-        BasicAnomalyTest bestAnomaly = null;
-        for(int i = 0; i < anomalies.Count; i++)
-        {
-            float currentUtility = anomalies[i].GetUtility();
-            if(currentUtility > bestExpectedUtility)
-            {
-                bestExpectedUtility = currentUtility;
-                bestAnomaly = anomalies[i];
-            }
-        }
-        return bestAnomaly;
-    }
+    //public List<IAnomaly> GetAnomalies()
+    //{
+    //    IAnomaly[] foundAnomalies = FindObjectsByType<IAnomaly>(FindObjectsSortMode.None);
+    //    return new List<IAnomaly>(foundAnomalies);
+    //}
+
+    //public BasicAnomalyTest ChooseTarget(List<BasicAnomalyTest> anomalies)
+    //{
+    //    float bestExpectedUtility = -999f;
+    //    BasicAnomalyTest bestAnomaly = null;
+    //    for(int i = 0; i < anomalies.Count; i++)
+    //    {
+    //        float currentUtility = anomalies[i].GetUtility();
+    //        if(currentUtility > bestExpectedUtility)
+    //        {
+    //            bestExpectedUtility = currentUtility;
+    //            bestAnomaly = anomalies[i];
+    //        }
+    //    }
+    //    return bestAnomaly;
+    //}
 
     /// <summary>
     /// Methods for IAnomaly 
@@ -86,6 +91,7 @@ public class ExorcistAgent : MonoBehaviour
 
         IAnomaly previousTarget = Target;
         Target = ChooseTarget();
+        gs.Search(transform.position, Target.gameObject);
 
         if (previousTarget != Target)
         {
@@ -111,7 +117,7 @@ public class ExorcistAgent : MonoBehaviour
                 best = anomaly;
             }
         }
-
+        
         return best; 
     }
     #endregion 
