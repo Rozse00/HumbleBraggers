@@ -71,8 +71,13 @@ public class Orb : MonoBehaviour
         return taken; 
     }
 
+    public void DrainEnergy(float amount)
+    {
+        Drain(amount);
+    }
+
     /// <summary>
-    /// Method toa dd energy to the orb. Returns the amount added. 
+    /// Method to add energy to the orb. Returns the amount added. 
     /// </summary>
     /// <param name="amount"></param>
     /// <returns></returns>

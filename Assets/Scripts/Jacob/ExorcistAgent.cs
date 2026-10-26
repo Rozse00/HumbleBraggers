@@ -6,17 +6,17 @@ public class ExorcistAgent : MonoBehaviour
 {
     // Frequency at which the Exorcist will recalculate the utility of certain events
     [SerializeField] private float evaluationInterval = 1f;
-    private float timer;
+    [SerializeField] private float tempDispelTimer = 2f; 
+    private float  intervalTimer;
+    private float  dispelTimer; 
     
 
     public IAnomaly Target { get; private set;  }
-    private GridSearch gs;
+    private GridSearch gs; // Socket for future travel implementation 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        gs = GetComponent<GridSearch>();
-        Target = ChooseTarget();
         //List<IAnomaly> anom = GetAnomalies();
         //string result = string.Join(", ", anom.Select(x => x.ToString()));
         //Debug.Log($"List contents: {result}\n");
@@ -41,11 +41,14 @@ public class ExorcistAgent : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        timer -= Time.deltaTime;
-        if (timer <= 0f)
+         intervalTimer -= Time.deltaTime;
+        if ( intervalTimer <= 0f)
         {
             Reevaluate(); 
         }
+
+        //Temporary Solution for dispelling entities
+        TickDispel(); 
 
         // CODE FOR PATHFINDING TOWARDS TARGET HERE
         // The ExorcistAgent is moving towards the anaomaly's InteractionPoint (a transform component) 
@@ -85,16 +88,37 @@ public class ExorcistAgent : MonoBehaviour
     #region IAnomaly 
     private void HandleAnomalyChanged(IAnomaly anomaly) => Reevaluate();
 
+    private void TickDispel()
+    {
+        if (Target == null)
+        {
+            return; 
+        }
+
+        dispelTimer -= Time.deltaTime;
+        if (dispelTimer > 0f) return;
+
+        IAnomaly dispelling = Target;
+        dispelTimer = tempDispelTimer; 
+
+        if (dispelling.TryResolve(gameObject))
+        {
+            Debug.Log($"[Exorcist] Dispelled {dispelling.name}");
+        }
+    }
+
     private void Reevaluate()
     {
-        timer = evaluationInterval;
+         intervalTimer = evaluationInterval;
 
         IAnomaly previousTarget = Target;
         Target = ChooseTarget();
-        gs.Search(transform.position, Target.gameObject);
+
+       /// gs.Search(transform.position, Target.gameObject);
 
         if (previousTarget != Target)
         {
+            dispelTimer = tempDispelTimer;   
             string targetName = Target != null ? Target.name : "None"; 
             Debug.Log($"[Exorcist] Target -> " + targetName);
         }
