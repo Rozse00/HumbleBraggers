@@ -1,4 +1,3 @@
-using UnityEditorInternal;
 using UnityEngine;
 
 /*
@@ -27,7 +26,7 @@ public class Slink : MonoBehaviour
     public float hideSpeed = 7f;//Faster speed when hiding
     private Transform currentWP;
 
-    //public PlayerHealth playerHealth;//If the players health is a component on the player object
+    public PlayerHealth playerHealth;//If the players health is a component on the player object
     float distanceToPlayer;
     float attackRange = 5f;
     int health = 20;
@@ -139,7 +138,7 @@ public class Slink : MonoBehaviour
                     }
 
                     SetAnimatorState("Attack"); //play attack animation
-                    //playerHealth.TakeDamage(attackDamage);//apply damage to player
+                    playerHealth.TakeDamage(attackDamage);//apply damage to player
                     break;
                 case "Following":
                     Debug.Log("Slink is following");
