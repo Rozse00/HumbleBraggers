@@ -9,6 +9,8 @@ public interface IAnomaly
     string name { get; set; }
     // States whether or not the anomaly is active currently 
     bool IsActive { get; }
+    // the GameObject the anomaly is contained in
+    GameObject gameObject { get; }
 
     Transform InteractionPoint { get; } // Where the helper must go to disable the anomaly, pathfinding location
     #endregion
