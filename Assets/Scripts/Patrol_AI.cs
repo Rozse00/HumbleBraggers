@@ -32,8 +32,11 @@ public class Patrol_AI : MonoBehaviour
     public float moveSpeed;
 
     bool fixedUpdateError = false;
+    bool initialized = false;
 
     float startTime;
+
+    Rigidbody rb;
 
     void Start()
     {
@@ -52,17 +55,25 @@ public class Patrol_AI : MonoBehaviour
         route1.Add(returnPoint);
         route2.Add(returnPoint);
 
-        Initialize();
+        StartCoroutine(Initialize());
 
-        Debug.Log($"{routeIndex} | {waypointIndex} | {lineIndex}"
-            + $"\n{currentRoute} | {currentLine}");
+        rb = GetComponent<Rigidbody>();
     }
 
-    void Initialize()
+    IEnumerator Initialize()
     {
+        yield return new WaitForSeconds(.25f);
+
         currentRoute = route1;
         
         GetCurrentWaypoint();
+
+        Debug.Log($"{routeIndex} | {waypointIndex} | {lineIndex}"
+            + $"\n{currentRoute} | {currentLine}");
+
+        yield return null;
+
+        initialized = true;
     }
 
     public bool GetNextWaypoint()
@@ -79,7 +90,9 @@ public class Patrol_AI : MonoBehaviour
     public void GetCurrentWaypoint()
     {
         Transform next = currentRoute[waypointIndex];
+
         currentLine = gs.Search(transform.position, next.gameObject);
+        //transform.LookAt(currentLine[0]);
 
         lineIndex = 0;
     }
@@ -101,9 +114,11 @@ public class Patrol_AI : MonoBehaviour
 
     void FixedUpdate()
     {
+        if(!initialized) return;
+
         if (fixedUpdateError) return;
 
-        Debug.Log("Fixed Update");
+        //Debug.Log("Fixed Update");
 
         if (!canMove)
             return;
@@ -122,7 +137,7 @@ public class Patrol_AI : MonoBehaviour
 
         float dist = Vector3.Distance(groundPoint, targPoint);
 
-        if (dist < .25f)
+        if (dist < .125f)
         {
             lineIndex++;
             if (lineIndex == currentLine.Count)
@@ -134,11 +149,16 @@ public class Patrol_AI : MonoBehaviour
                     GetCurrentWaypoint();
                 }
             }
+            
         }
 
         next = currentLine[lineIndex];
-        transform.LookAt(next.position);
-        transform.Translate(transform.forward * Time.fixedDeltaTime * moveSpeed);
+
+        Vector3 dir = next.position - transform.position;
+        Quaternion targRot = Quaternion.LookRotation(dir);
+        rb.MoveRotation(targRot);
+        //transform.LookAt(next.position);
+        rb.position += transform.forward * Time.fixedDeltaTime * moveSpeed;
 
         Debug.DrawRay(transform.position, transform.forward, Color.blue);
     }

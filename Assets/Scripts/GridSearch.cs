@@ -73,7 +73,7 @@ public class GridSearch : MonoBehaviour
                 q.Enqueue(next);
             }
             //shows the objects hit in the last search
-            Debug.Log(s.ToString());
+            //Debug.Log(s.ToString());
         }
 
         List<Transform> path = new List<Transform>();

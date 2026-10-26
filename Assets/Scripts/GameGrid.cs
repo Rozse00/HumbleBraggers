@@ -15,6 +15,8 @@ public class GameGrid : MonoBehaviour
     }
     public Mode mode;
 
+    public float offset = .75f; //dist between grid points
+
     [Header("X-bounds")]
     public float left;
     public float right;
@@ -26,7 +28,7 @@ public class GameGrid : MonoBehaviour
     public Transform bLeft;
     public Transform tRight;
 
-    float offset = .5f; //dist between grid points
+    
 
     void Awake()
     {
@@ -64,6 +66,7 @@ public class GameGrid : MonoBehaviour
 
         Debug.Log($"{spheres.Count} * {spheres[0].Count} = {spheres.Count * spheres[0].Count}");
 
+        //Physics.SyncTransforms();
         ResetColors();
     }
 

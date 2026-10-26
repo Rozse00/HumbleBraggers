@@ -34,7 +34,7 @@ public class GridSphere : MonoBehaviour
     {
         objects.Add(col.gameObject);
 
-        Debug.Log($"Sphere {point} added "+col.gameObject.name);
+        //Debug.Log($"Sphere {point} added "+col.gameObject.name);
     }
 
     void OnTriggerExit(Collider col)
